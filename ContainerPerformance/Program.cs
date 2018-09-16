@@ -8,64 +8,72 @@ namespace ContainerPerformance
 {
     class Program
     {
-        static void Main(string[] args)
+        private static void Main()
         {
-            Console.WriteLine("Singleton --------------------------------------------");
+            // warm up
+            Console.WriteLine("/* ignore");
+            MsContainerResolveSingleton(100);
+            CWContainerResolveSingleton(100);
+            Console.WriteLine("*/");
+            Console.WriteLine();
 
-            MsContainerResolveSingleton(1);
+            Console.WriteLine("# Singleton");
+
             MsContainerResolveSingleton(100);
             MsContainerResolveSingleton(1_000);
             MsContainerResolveSingleton(100_000);
             MsContainerResolveSingleton(1_000_000);
 
-            CWContainerResolveSingleton(1);
             CWContainerResolveSingleton(100);
             CWContainerResolveSingleton(1_000);
             CWContainerResolveSingleton(100_000);
             CWContainerResolveSingleton(1_000_000);
 
             Console.WriteLine();
-            Console.WriteLine("Transient ---------------------------------------------");
+            Console.WriteLine("# Transient");
 
-            MsContainerResolveTransient(1);
             MsContainerResolveTransient(100);
             MsContainerResolveTransient(1_000);
             MsContainerResolveTransient(100_000);
             MsContainerResolveTransient(1_000_000);
 
-            CWContainerResolveTransient(1);
             CWContainerResolveTransient(100);
             CWContainerResolveTransient(1_000);
             CWContainerResolveTransient(100_000);
             CWContainerResolveTransient(1_000_000);
 
             Console.WriteLine();
-            Console.WriteLine("Complex transient -------------------------------------");
-            MsContainerResolveComplexTransient(1);
+            Console.WriteLine("# Complex transient");
+
             MsContainerResolveComplexTransient(100);
             MsContainerResolveComplexTransient(1_000);
             MsContainerResolveComplexTransient(100_000);
             MsContainerResolveComplexTransient(1_000_000);
 
-            CWContainerResolveComplexTransient(1);
             CWContainerResolveComplexTransient(100);
             CWContainerResolveComplexTransient(1_000);
             CWContainerResolveComplexTransient(100_000);
             CWContainerResolveComplexTransient(1_000_000);
 
             Console.WriteLine();
-            Console.WriteLine("Complex transient new container -----------------------");
-            MsContainerResolveComplexTransient(1, true);
+            Console.WriteLine("# Complex transient new container");
+            
             MsContainerResolveComplexTransient(100, true);
             MsContainerResolveComplexTransient(1_000, true);
             MsContainerResolveComplexTransient(100_000, true);
 
-            CWContainerResolveComplexTransient(1, true);
             CWContainerResolveComplexTransient(100, true);
             CWContainerResolveComplexTransient(1_000, true);
             CWContainerResolveComplexTransient(100_000, true);
 
             Console.ReadLine();
+        }
+
+        private static void WarmUp()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.BuildServiceProvider();
+            new WindsorContainer();
         }
 
         private static void MsContainerResolveSingleton(int times)
@@ -81,7 +89,7 @@ namespace ContainerPerformance
                 container.GetRequiredService<SimpleClass>();
             }
             sw.Stop();
-            Console.WriteLine($"MS container static {times}x times in {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"- MS container static {times}x times in {GetMillisecondsFromTicks(sw.ElapsedTicks)} ms");
         }
 
         private static void MsContainerResolveTransient(int times)
@@ -97,7 +105,7 @@ namespace ContainerPerformance
                 container.GetRequiredService<SimpleClass>();
             }
             sw.Stop();
-            Console.WriteLine($"MS container static {times}x times in {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"- MS container static {times}x times in {GetMillisecondsFromTicks(sw.ElapsedTicks)} ms");
         }
 
         private static void MsContainerResolveComplexTransient(int times, bool alwaysNewContainer = false)
@@ -115,7 +123,7 @@ namespace ContainerPerformance
                 container.GetRequiredService<SimpleClass>();
             }
             sw.Stop();
-            Console.WriteLine($"MS container static {times}x times in {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"- MS container static {times}x times in {GetMillisecondsFromTicks(sw.ElapsedTicks)} ms");
 
             ServiceProvider GetContainer()
             {
@@ -138,7 +146,7 @@ namespace ContainerPerformance
                 container.Resolve<SimpleClass>();
             }
             sw.Stop();
-            Console.WriteLine($"Castle.Windsor static {times}x times in {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"- Castle.Windsor static {times}x times in {GetMillisecondsFromTicks(sw.ElapsedTicks)} ms");
         }
 
         private static void CWContainerResolveTransient(int times)
@@ -153,7 +161,7 @@ namespace ContainerPerformance
                 container.Resolve<SimpleClass>();
             }
             sw.Stop();
-            Console.WriteLine($"Castle.Windsor static {times}x times in {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"- Castle.Windsor static {times}x times in {GetMillisecondsFromTicks(sw.ElapsedTicks)} ms");
         }
 
         private static void CWContainerResolveComplexTransient(int times, bool alwaysNewContainer = false)
@@ -171,7 +179,7 @@ namespace ContainerPerformance
                 container.Resolve<SimpleClass>();
             }
             sw.Stop();
-            Console.WriteLine($"Castle.Windsor static {times}x times in {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"- Castle.Windsor static {times}x times in {GetMillisecondsFromTicks(sw.ElapsedTicks)} ms");
 
             WindsorContainer GetContainer()
             {
@@ -180,6 +188,11 @@ namespace ContainerPerformance
                 c.Register(Component.For<ComplexClass>().LifestyleTransient());
                 return c;
             }
+        }
+
+        private static double GetMillisecondsFromTicks(long ticks)
+        {
+            return Math.Round(TimeSpan.FromTicks(ticks).TotalMilliseconds, 3);
         }
     }
 }
