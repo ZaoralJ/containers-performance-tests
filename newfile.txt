@@ -2,3 +2,6 @@ new file
 
 
 some other line
+
+
+new line
